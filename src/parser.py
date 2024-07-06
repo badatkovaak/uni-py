@@ -1,9 +1,7 @@
 from collections.abc import Sequence
-from types import FunctionType
 from typing import Callable, Iterator, List, Optional
-import numpy as np
-from numpy.typing import NDArray
 from dataclasses import dataclass
+import functools as f
 
 
 @dataclass(slots=True)
@@ -36,38 +34,29 @@ def parse_number(input: Peekable[str]) -> float:
     return float(number)
 
 
-def parse_string(input: Peekable[str], word: str) -> bool:
-    next_char = input.peek()
-    matched = 0
-    while next_char and matched < len(word):
-        print(f"string {next_char}")
-        if next_char == word[matched]:
-            matched += 1
-            input.__next__()
-            next_char = input.peek()
-        else:
-            return False
-    return matched == len(word)
+def is_opening(s: str) -> str:
+    match s:
+        case '[': return ']'
+        case '(': return ')'
+        case '{': return '}'
+        case '<': return '>'
+        case _: return ''
 
 
 def parse_between[T](input: Peekable[str], opening: str, closing: str, func: Callable[[Peekable[str]], List[T]]) -> List[T]:
     next_char = input.peek()
     matched_opening = False
     result = []
-    if not next_char:
-        raise ValueError()
     while next_char:
-        print(f"between {next_char}")
+        # print(f"between {next_char}")
         match next_char:
-            case a if a == opening[0] and not matched_opening:
-                if not parse_string(input, opening):
-                    raise ValueError("Couldnt parse opening tag")
+            case a if a == opening and not matched_opening:
+                input.__next__()
                 matched_opening = True
                 result = func(input)
                 next_char = input.peek()
-            case a if a == closing[0] and matched_opening:
-                if not parse_string(input, closing):
-                    raise ValueError("Couldnt parse closing tag")
+            case a if a == closing and matched_opening:
+                input.__next__()
                 return result
             case ' ' | '\t' | '\n':
                 input.__next__()
@@ -76,23 +65,22 @@ def parse_between[T](input: Peekable[str], opening: str, closing: str, func: Cal
                 input.__next__()
                 next_char = input.peek()
             case _ if not matched_opening:
-                raise ValueError()
-    raise ValueError()
+                raise ValueError("Couldnt find opening tag ")
+    raise ValueError("Couldnt find closing tag")
 
 
-def parse_items(input: Peekable[str]):
+def parse_items(input: Peekable[str], closing: str):
     next_char = input.peek()
     result = []
     while next_char:
-        print(f" items {next_char}")
         match next_char:
             case a if a.isdigit() or a == '.':
                 result.append(parse_number(input))
                 next_char = input.peek()
-            case a if a == '[':
+            case a if is_opening(a):
                 result.append(parse_list(input))
                 next_char = input.peek()
-            case a if a == ']':
+            case a if a == closing:
                 return result
             case _:
                 input.__next__()
@@ -103,27 +91,31 @@ def parse_items(input: Peekable[str]):
 def parse_list(input: Peekable[str]) -> List[float] | float:
     next_char = input.peek()
     while next_char:
-        print(f"list {next_char}")
         match next_char:
             case a if a.isdigit() or a == '.':
                 return parse_number(input)
-            case a if a == '[':
-                return parse_between(input, '[', ']', parse_items)
+            case a if is_opening(a):
+                return parse_between(input, a, is_opening(a), f.partial(parse_items, closing=is_opening(a)))
             case _:
                 input.__next__()
                 next_char = input.peek()
-    raise ValueError
+    raise ValueError("Couldnt find neither list nor any value")
 
 
 def parse(input: str) -> List[float] | float:
     return parse_list(Peekable(input))
 
 
-def main() -> None:
-    while True:
-        inp = input(">>")
-        print(parse(inp))
+def parse_from_file(path: str) -> List[float] | float:
+    with open(path, encoding="UTF-8") as f:
+        return parse(f.read())
 
 
-if __name__ == "__main__":
-    main()
+# def main() -> None:
+#     while True:
+#         inp = input(">>")
+#         print(parse(inp))
+#
+#
+# if __name__ == "__main__":
+#     main()

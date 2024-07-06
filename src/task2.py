@@ -1,17 +1,17 @@
-import numpy.typing as nt
 from numpy import allclose, array, eye, zeros
 from numpy.linalg import eigvals, eigvalsh, solve, det
+from numpy.typing import NDArray
 
 
-def spectral_radius(A: nt.NDArray) -> float:
+def spectral_radius(A: NDArray) -> float:
     return abs(max(eigvals(A), key=lambda x: abs(x)))
 
 
-def spectral_radius_h(A: nt.NDArray) -> float:
+def spectral_radius_h(A: NDArray) -> float:
     return abs(max(eigvalsh(A), key=lambda x: abs(x)))
 
 
-def is_diagonally_dominant(A: nt.NDArray) -> bool:
+def is_diagonally_dominant(A: NDArray) -> bool:
     if A.shape[0] != A.shape[1]:
         raise ValueError
     for i in range(A.shape[1]):
@@ -23,11 +23,11 @@ def is_diagonally_dominant(A: nt.NDArray) -> bool:
     return True
 
 
-def is_hermitian(A: nt.NDArray) -> bool:
+def is_hermitian(A: NDArray) -> bool:
     return allclose(A, A.conjugate().transpose(), atol=0.000001)
 
 
-def approximate_system_of_linear_eqs(A: nt.NDArray, B: nt.NDArray) -> nt.NDArray:
+def approximate_system_of_linear_eqs(A: NDArray, B: NDArray) -> NDArray:
     match (A.shape, B.shape):
         case ((n, m), (k,)) if m == k and n != 0:
             pass
@@ -59,6 +59,7 @@ def approximate_system_of_linear_eqs(A: nt.NDArray, B: nt.NDArray) -> nt.NDArray
         G = M_inv @ B
         # print(M, A, M_inv, H,  sep='\n', end='\n\n')
     print(f"is diagonally dominant - {is_diagonally_dominant(A)}")
+    print(f"is hermitian - {is_hermitian(A)}")
     print(f"spectral radius of H is {spectral_radius(H)}")
 
     for _ in range(20):
