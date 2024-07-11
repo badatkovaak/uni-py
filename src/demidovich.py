@@ -1,8 +1,8 @@
-# import sympy as sp
 from sympy import Symbol, atan, cos, diff, exp, integrate, limit, log, oo, root, simplify, sin, summation, symbols, tan
 from sympy.plotting.plot import plot
 import numpy as np
 import matplotlib.pyplot as plt
+from os import mkdir
 
 # 99, 100, 253, 279 g, 299, 555-559, 1203, 1656-1658, 1807-1810, 3022, 3023
 
@@ -44,7 +44,8 @@ def solve_279():
     plt.ylim(0, 100)
     plt.legend(loc='upper right')
 
-    plt.show()
+    mkdir('graphs')
+    plt.savefig('graphs/graph_279.png')
 
 
 def solve_299():
@@ -170,7 +171,7 @@ def solve_3023():
     return s
 
 
-def main() -> None:
+def run_demidovich() -> None:
     # solve_99()
     # solve_100()
     # solve_253()
@@ -194,4 +195,4 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    run_demidovich()

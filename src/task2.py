@@ -27,7 +27,8 @@ def is_hermitian(A: NDArray) -> bool:
     return allclose(A, A.conjugate().transpose(), atol=0.000001)
 
 
-def approximate_system_of_linear_eqs(A: NDArray, B: NDArray) -> NDArray:
+def solve_system_of_linear_equations_numerically(A: NDArray, B: NDArray) -> NDArray:
+    ''' Solve A * x = B, for x'''
     match (A.shape, B.shape):
         case ((n, m), (k,)) if m == k and n != 0:
             pass
@@ -67,7 +68,7 @@ def approximate_system_of_linear_eqs(A: NDArray, B: NDArray) -> NDArray:
     return X
 
 
-def main():
+def tests():
     A0, B0 = array([[68, 16, 8, -15], [-16, 123, -11, 21], [-5, 8, 100, -34],
                     [-12, -14, 18, 94]]), array([242, 143, -16, 162])
     A1, B1 = array([[1, 2, 3], [3, 4, 5], [4, 5, 7]]), array([1, 2, 3])
@@ -80,7 +81,7 @@ def main():
     # s3 = approximate_system_of_linear_eqs(A3, B3)
     # s4 = approximate_system_of_linear_eqs(A4, B4)
     # s5 = approximate_system_of_linear_eqs(A5, B5)
-    s0 = approximate_system_of_linear_eqs(A0, B0)
+    s0 = solve_system_of_linear_equations_numerically(A0, B0)
     print(s0)
     print(solve(A0, B0))
     # print(s1)
@@ -96,4 +97,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    tests()

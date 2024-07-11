@@ -1,6 +1,6 @@
-from sympy import root, simplify, symbols
-from numpy import array
-from numpy.linalg import det, inv
+from sympy import Matrix, root, simplify, solve_linear_system, symbols
+from numpy import array, zeros
+from numpy.linalg import det, inv, solve
 
 # 6.9 г, 8.3 е, 13.1 з, 17.2 а, 18.3 к, 20.1 а, 22.7 з.
 
@@ -17,8 +17,19 @@ def solve_6_9():
 
 
 def solve_8_3():
+
+    # A = Matrix([[3, 1, 2], [-6, -2, -4], [-1, -3, -14],
+    #            [4, 7, 31], [-7, -5, -10]])
+    A = Matrix([[3, -6, -1, 4, -7], [1, -2, -3, 7, -5], [2, -4, -14, 31, -10]])
     A = array([[3, 1, 2], [-6, -2, -4], [-1, -3, -14], [4, 7, 31]])
     B = array([-7, -5, -10])
+    # print(A.shape)
+    # x, y, z, w, v = symbols('x y z w v')
+    # # A = Matrix(((1, 2, 3), (0, 0, 0)))
+    # s = solve_linear_system(A, x, y, z, w)
+    # print(s)
+    # return s
+    print(A.T @ array([1, 2, 22/5, 8/5]) == B)
     pass
 
 
@@ -59,15 +70,15 @@ def solve_22_7():
     return r
 
 
-def main() -> None:
-    solve_6_9()
+def run_kostrikin() -> None:
+    # solve_6_9()
     solve_8_3()
-    solve_13_1()
-    solve_17_2()
-    solve_18_3()
-    solve_20_1()
-    solve_22_7()
+    # solve_13_1()
+    # solve_17_2()
+    # solve_18_3()
+    # solve_20_1()
+    # solve_22_7()
 
 
 if __name__ == "__main__":
-    main()
+    run_kostrikin()

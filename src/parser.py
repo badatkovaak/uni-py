@@ -3,6 +3,9 @@ from typing import Callable, Iterator, List, Optional
 from dataclasses import dataclass
 import functools as f
 
+from numpy import array
+from numpy.typing import NDArray
+
 
 @dataclass(slots=True)
 class Peekable[T]:
@@ -65,8 +68,8 @@ def parse_between[T](input: Peekable[str], opening: str, closing: str, func: Cal
                 input.__next__()
                 next_char = input.peek()
             case _ if not matched_opening:
-                raise ValueError("Couldnt find opening tag ")
-    raise ValueError("Couldnt find closing tag")
+                raise ValueError("Couldn't find opening tag ")
+    raise ValueError("Couldn't find closing tag")
 
 
 def parse_items(input: Peekable[str], closing: str):
@@ -95,11 +98,12 @@ def parse_list(input: Peekable[str]) -> List[float] | float:
             case a if a.isdigit() or a == '.':
                 return parse_number(input)
             case a if is_opening(a):
-                return parse_between(input, a, is_opening(a), f.partial(parse_items, closing=is_opening(a)))
+                return parse_between(input, a, is_opening(a),
+                                     f.partial(parse_items, closing=is_opening(a)))
             case _:
                 input.__next__()
                 next_char = input.peek()
-    raise ValueError("Couldnt find neither list nor any value")
+    raise ValueError("Couldn't find neither list nor any value")
 
 
 def parse(input: str) -> List[float] | float:
@@ -111,11 +115,8 @@ def parse_from_file(path: str) -> List[float] | float:
         return parse(f.read())
 
 
-# def main() -> None:
-#     while True:
-#         inp = input(">>")
-#         print(parse(inp))
-#
-#
-# if __name__ == "__main__":
-#     main()
+def validate_parsed(list: List[float]) -> NDArray:
+    try:
+        return array(list)
+    except ValueError:
+        raise ValueError("Provided List has incorrect dimensions")

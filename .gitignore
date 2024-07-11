@@ -3,3 +3,5 @@ include
 lib*
 .mypy_cache
 share
+**__pycache__
+graphs
