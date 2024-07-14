@@ -3,9 +3,6 @@ from typing import Callable, Iterator, List, Optional
 from dataclasses import dataclass
 import functools as f
 
-from numpy import array
-from numpy.typing import NDArray
-
 
 @dataclass(slots=True)
 class Peekable[T]:
@@ -51,7 +48,6 @@ def parse_between[T](input: Peekable[str], opening: str, closing: str, func: Cal
     matched_opening = False
     result = []
     while next_char:
-        # print(f"between {next_char}")
         match next_char:
             case a if a == opening and not matched_opening:
                 input.__next__()
@@ -103,7 +99,7 @@ def parse_list(input: Peekable[str]) -> List[float] | float:
             case _:
                 input.__next__()
                 next_char = input.peek()
-    raise ValueError("Couldn't find neither list nor any value")
+    raise ValueError("Couldn't find list or any value")
 
 
 def parse(input: str) -> List[float] | float:
@@ -113,10 +109,3 @@ def parse(input: str) -> List[float] | float:
 def parse_from_file(path: str) -> List[float] | float:
     with open(path, encoding="UTF-8") as f:
         return parse(f.read())
-
-
-def validate_parsed(list: List[float]) -> NDArray:
-    try:
-        return array(list)
-    except ValueError:
-        raise ValueError("Provided List has incorrect dimensions")

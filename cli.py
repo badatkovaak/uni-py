@@ -3,15 +3,16 @@
 from sys import argv
 from typing import List
 
+from numpy import array
 from numpy.typing import NDArray
-from src.parser import parse, validate_parsed
+from src.list_parser import parse
 from src.demidovich import run_demidovich
 from src.kostrikin import run_kostrikin
 from src.task2 import solve_system_of_linear_equations_numerically
 
 
-def get_help() -> str:
-    return '''
+def print_help() -> None:
+    print('''
 usage: cli.py [options] [arguments]
             
 Options:
@@ -27,41 +28,38 @@ Options:
     
     --help              see this help
 
-            '''
+            ''')
+
+def convert_input_to_array(input: str) -> NDArray:
+    try:
+        return array(parse(input))
+    except ValueError:
+        raise ValueError("Inputed list has incorrect dimensions")
 
 
 def run_task2(a: str, b: str):
-    A = parse(a)
-    B = parse(b)
-    if isinstance(a, float):
-        A = [A]
-    if isinstance(b, float):
-        B = [B]
-    A = validate_parsed(A)  # type: ignore
-    B = validate_parsed(B)  # type: ignore
-    return solve_system_of_linear_equations_numerically(A, B)
+    return solve_system_of_linear_equations_numerically(
+        convert_input_to_array(a), convert_input_to_array(b))
 
 
 def parse_args(input: List[str]):
     match input:
-        case [_, '--help']:
-            print(get_help())
-        case [_, '--demidovich']:
+        case [_, '--help', *_]:
+            print_help()
+        case [_, '--demidovich', *_]:
             run_demidovich()
-        case [_, '--kostrikin']:
+        case [_, '--kostrikin', *_]:
             run_kostrikin()
-        case [_, '--task2', a, b]:
+        case [_, '--task2', a, b, *_]:
             run_task2(a, b)
         case _:
             print("Invalid options")
-            print(get_help())
+            print_help()
 
 
 def main() -> None:
     parse_args(argv)
-    # pass
 
 
 if __name__ == "__main__":
-    # print(argv)
     main()

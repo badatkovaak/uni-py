@@ -28,7 +28,7 @@ def is_hermitian(A: NDArray) -> bool:
 
 
 def solve_system_of_linear_equations_numerically(A: NDArray, B: NDArray) -> NDArray:
-    ''' Solve A * x = B, for x'''
+    ''' Numerically solve A * x = B, for x, using fixed-point iteration'''
     match (A.shape, B.shape):
         case ((n, m), (k,)) if m == k and n != 0:
             pass
@@ -37,7 +37,6 @@ def solve_system_of_linear_equations_numerically(A: NDArray, B: NDArray) -> NDAr
     if det(A) == 0:
         raise ValueError("Input Matrix is Singular")
 
-    X = zeros(B.shape[0])
     if is_diagonally_dominant(A):
         M = array([[(lambda x, y: (x == y) * A[x][y])(i, j)
                     for j in range(A.shape[0])] for i in range(A.shape[0])])
@@ -45,7 +44,6 @@ def solve_system_of_linear_equations_numerically(A: NDArray, B: NDArray) -> NDAr
                         for j in range(A.shape[0])] for i in range(A.shape[0])])
         H = eye(A.shape[0]) - M_inv @ A
         G = M_inv @ B
-        # print(M, A, M_inv, H,  sep='\n', end='\n\n')
     elif is_hermitian(A):
         l_min, l_max = (lambda x: (x[0], x[-1]))(sorted(eigvalsh(A)))
         alpha = 2/(l_min + l_max)
@@ -58,11 +56,14 @@ def solve_system_of_linear_equations_numerically(A: NDArray, B: NDArray) -> NDAr
                         for j in range(A.shape[0])] for i in range(A.shape[0])])
         H = M_inv @ (M - A)
         G = M_inv @ B
-        # print(M, A, M_inv, H,  sep='\n', end='\n\n')
-    print(f"is diagonally dominant - {is_diagonally_dominant(A)}")
-    print(f"is hermitian - {is_hermitian(A)}")
+        if spectral_radius(H) >= 1:
+            raise ValueError("Couldn't approximate system of linear equations")
+
+    print(f"A is diagonally dominant - {is_diagonally_dominant(A)}")
+    print(f"A is hermitian - {is_hermitian(A)}")
     print(f"spectral radius of H is {spectral_radius(H)}")
 
+    X = zeros(B.shape[0])
     for _ in range(20):
         X = H @ X + G
     return X
