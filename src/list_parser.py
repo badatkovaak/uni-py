@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Callable, Iterator, List, Optional
 from dataclasses import dataclass
-import functools as f
+from functools import partial
 
 
 @dataclass(slots=True)
@@ -108,7 +108,7 @@ def parse_list(input: Peekable[str]) -> List[float] | float:
                     input,
                     a,
                     is_opening(a),
-                    f.partial(parse_items, closing=is_opening(a)),
+                    partial(parse_items, closing=is_opening(a)),
                 )
             case _:
                 input.__next__()

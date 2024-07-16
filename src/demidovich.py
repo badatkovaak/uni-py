@@ -61,7 +61,7 @@ def solve_253():
     plt.ylim(-100, 100)
     plt.legend(loc="upper right")
 
-    plt.show()
+    # plt.show()
 
 def solve_279():
     x = np.arange(-5, 5, 0.01)
@@ -79,7 +79,7 @@ def solve_279():
     plt.ylim(0, 100)
     plt.legend(loc="upper right")
 
-    plt.show()
+    # plt.show()
 
 
 def solve_299():
@@ -97,7 +97,7 @@ def solve_299():
     plt.ylabel("y")
     plt.legend(loc="upper right")
 
-    plt.show()
+    # plt.show()
 
 
 def solve_555():
@@ -163,7 +163,7 @@ def solve_1203():
     f = x**2 * s.sin(a * x)
     result = s.diff(f, (x, n))
 
-    print(f"\n1203: n-ная производная {f} это {result}\n")
+    print(f"\n1203: n-ная производная {f} это \n{result}\n")
     return result
 
 
@@ -173,7 +173,7 @@ def solve_1656():
 
     result = s.integrate(f)
 
-    print(f"\n1656: интеграл {f} это {result} \n")
+    print(f"\n1656: интеграл {f} это \n{result} \n")
     return result
 
 
