@@ -1,101 +1,124 @@
 from numpy import allclose, array, eye, zeros
 from numpy.linalg import eigvals, eigvalsh, solve, det
 from numpy.typing import NDArray
-
-
-def spectral_radius(A: NDArray) -> float:
-    return abs(max(eigvals(A), key=lambda x: abs(x)))
-
-
-def spectral_radius_h(A: NDArray) -> float:
-    return abs(max(eigvalsh(A), key=lambda x: abs(x)))
+from src.list_parser import parse
 
 
 def is_diagonally_dominant(A: NDArray) -> bool:
     if A.shape[0] != A.shape[1]:
         raise ValueError
+    
     for i in range(A.shape[1]):
         non_diagonal = 0
         for j in range(A.shape[0]):
-            non_diagonal += (i != j)*abs(A[i][j])
+            non_diagonal += (i != j) * abs(A[i][j])
         if non_diagonal >= abs(A[i][i]):
             return False
+    
     return True
 
 
-def is_hermitian(A: NDArray) -> bool:
-    return allclose(A, A.conjugate().transpose(), atol=0.000001)
-
-
 def solve_system_of_linear_equations_numerically(A: NDArray, B: NDArray) -> NDArray:
-    ''' Numerically solve A * x = B, for x, using fixed-point iteration'''
     match (A.shape, B.shape):
-        case ((n, m), (k,)) if m == k and n != 0:
+        case ((n, m), (k,)) if n == m == k:
             pass
         case _:
-            raise ValueError("Incorrect Dimensions")
+            raise ValueError("Некорректная размерность")
+    
     if det(A) == 0:
-        raise ValueError("Input Matrix is Singular")
+        raise ValueError("Введенная матрица вырождена")
 
-    if is_diagonally_dominant(A):
-        M = array([[(lambda x, y: (x == y) * A[x][y])(i, j)
-                    for j in range(A.shape[0])] for i in range(A.shape[0])])
-        M_inv = array([[(lambda x, y: (x == y)*(1/A[x][y]))(i, j)
-                        for j in range(A.shape[0])] for i in range(A.shape[0])])
-        H = eye(A.shape[0]) - M_inv @ A
-        G = M_inv @ B
-    elif is_hermitian(A):
-        l_min, l_max = (lambda x: (x[0], x[-1]))(sorted(eigvalsh(A)))
-        alpha = 2/(l_min + l_max)
-        H = eye(A.shape[0]) - alpha * A
-        G = alpha * B
-    else:
-        M = array([[(lambda x, y: (x == y) * A[x][y])(i, j)
-                    for j in range(A.shape[0])] for i in range(A.shape[0])])
-        M_inv = array([[(lambda x, y: (x == y)*(1/A[x][y]))(i, j)
-                        for j in range(A.shape[0])] for i in range(A.shape[0])])
-        H = M_inv @ (M - A)
-        G = M_inv @ B
-        if spectral_radius(H) >= 1:
-            raise ValueError("Couldn't approximate system of linear equations")
-
-    print(f"A is diagonally dominant - {is_diagonally_dominant(A)}")
-    print(f"A is hermitian - {is_hermitian(A)}")
-    print(f"spectral radius of H is {spectral_radius(H)}")
+    if not is_diagonally_dominant(A):
+        raise ValueError("Матрица не является диагонально преобладающей")
+    
+    M_inv = array(
+        [
+            [(lambda x, y: (x == y) * (1 / A[x][y]))(i, j) for j in range(A.shape[0])]
+            for i in range(A.shape[0])
+        ]
+    )
+    H = eye(A.shape[0]) - M_inv @ A
+    G = M_inv @ B
 
     X = zeros(B.shape[0])
-    for _ in range(20):
+    for _ in range(30):
         X = H @ X + G
     return X
 
 
-def tests():
-    A0, B0 = array([[68, 16, 8, -15], [-16, 123, -11, 21], [-5, 8, 100, -34],
-                    [-12, -14, 18, 94]]), array([242, 143, -16, 162])
+def run_test(A: NDArray, B: NDArray) -> None:
+    s = solve_system_of_linear_equations_numerically(A, B)
+    print("", A, B, s, solve(A, B), "", sep="\n")
+
+
+def main() -> None:
+    while True:
+        command = input("""
+    Введите 'tests' чтобы запустить тесты
+    Введите 'keyboard' чтобы ввести матрицу вручную\n""")
+        match command.replace("\n", "").replace(" ", "").lower():
+            case "tests":
+                tests()
+            case "keyboard":
+                try:
+                    A = array(
+                        parse(
+                            input(
+                                """\nВведите матрицу A 
+примеры: [[1, 2], [3, 4]] ; (5, 6) ; {0.3} ; 5\n=>"""
+                            )
+                        )
+                    )
+                    B = array(
+                        parse(
+                            input(
+                                """\nВведите вектор B
+примеры: [[1, 2], [3, 4]] ; (5, 6) ; {0.3} ; 5\n=>"""
+                            )
+                        )
+                    )
+                    print("\n")
+                    try:
+                        result = solve_system_of_linear_equations_numerically(A, B)
+                    except ValueError as e:
+                        print(f"\nОшибка: {e}\n")
+                        continue
+                    print(
+                        f"\nВычисленный результат - {result}, настоящий - {solve(A,B)}\n"
+                    )
+                except ValueError as e:
+                    print(f"Ошибка: {e}\n")
+                    continue
+            case _:
+                print("Неизвестная команда\n")
+                continue
+
+
+def tests() -> None:
+    A0, B0 = (
+        array(
+            [
+                [68, 16, 8, -15],
+                [-16, 123, -11, 21],
+                [-5, 8, 100, -34],
+                [-12, -14, 18, 94],
+            ]
+        ),
+        array([242, 143, -16, 162]),
+    )
     A1, B1 = array([[1, 2, 3], [3, 4, 5], [4, 5, 7]]), array([1, 2, 3])
     A2, B2 = array([[1, 2], [3, 4]]), array([2, 2])
     A3, B3 = array([[3, 4], [-1, 2]]), array([1, 3])
     A4, B4 = array([[-1, 2], [3, 4]]), array([1, 3])
-    A5, B5 = array([[2, 1], [1, 2]]), array([5, 7])
-    # s1 = approximate_system_of_linear_eqs(A1, B1)
-    # s2 = approximate_system_of_linear_eqs(A2, B2)
-    # s3 = approximate_system_of_linear_eqs(A3, B3)
-    # s4 = approximate_system_of_linear_eqs(A4, B4)
-    # s5 = approximate_system_of_linear_eqs(A5, B5)
-    s0 = solve_system_of_linear_equations_numerically(A0, B0)
-    print(s0)
-    print(solve(A0, B0))
-    # print(s1)
-    # print(solve(A1, B1))
-    # print(s2)
-    # print(solve(A2, B2))
-    # print(s3)
-    # print(solve(A3, B3))
-    # print(s4)
-    # print(solve(A4, B4))
-    # print(s5)
-    # print(solve(A5, B5))
+    A5, B5 = array([[1, 5], [5, 1]]), array([5, 7])
+
+    run_test(A0, B0)
+    run_test(A1, B1)
+    run_test(A2, B2)
+    run_test(A3, B3)
+    run_test(A4, B4)
+    run_test(A5, B5)
 
 
 if __name__ == "__main__":
-    tests()
+    main()

@@ -27,7 +27,7 @@ class Peekable[T]:
 def parse_number(input: Peekable[str]) -> float:
     next_char = input.peek()
     number = ""
-    while next_char and (next_char.isdigit() or next_char == '.'):
+    while next_char and (next_char.isdigit() or next_char == "."):
         number += next_char
         input.__next__()
         next_char = input.peek()
@@ -36,14 +36,24 @@ def parse_number(input: Peekable[str]) -> float:
 
 def is_opening(s: str) -> str:
     match s:
-        case '[': return ']'
-        case '(': return ')'
-        case '{': return '}'
-        case '<': return '>'
-        case _: return ''
+        case "[":
+            return "]"
+        case "(":
+            return ")"
+        case "{":
+            return "}"
+        case "<":
+            return ">"
+        case _:
+            return ""
 
 
-def parse_between[T](input: Peekable[str], opening: str, closing: str, func: Callable[[Peekable[str]], List[T]]) -> List[T]:
+def parse_between[T](
+    input: Peekable[str],
+    opening: str,
+    closing: str,
+    func: Callable[[Peekable[str]], List[T]],
+) -> List[T]:
     next_char = input.peek()
     matched_opening = False
     result = []
@@ -57,7 +67,7 @@ def parse_between[T](input: Peekable[str], opening: str, closing: str, func: Cal
             case a if a == closing and matched_opening:
                 input.__next__()
                 return result
-            case ' ' | '\t' | '\n':
+            case " " | "\t" | "\n":
                 input.__next__()
                 next_char = input.peek()
             case _ if matched_opening:
@@ -73,7 +83,7 @@ def parse_items(input: Peekable[str], closing: str):
     result = []
     while next_char:
         match next_char:
-            case a if a.isdigit() or a == '.':
+            case a if a.isdigit() or a == ".":
                 result.append(parse_number(input))
                 next_char = input.peek()
             case a if is_opening(a):
@@ -91,11 +101,15 @@ def parse_list(input: Peekable[str]) -> List[float] | float:
     next_char = input.peek()
     while next_char:
         match next_char:
-            case a if a.isdigit() or a == '.':
+            case a if a.isdigit() or a == ".":
                 return parse_number(input)
             case a if is_opening(a):
-                return parse_between(input, a, is_opening(a),
-                                     f.partial(parse_items, closing=is_opening(a)))
+                return parse_between(
+                    input,
+                    a,
+                    is_opening(a),
+                    f.partial(parse_items, closing=is_opening(a)),
+                )
             case _:
                 input.__next__()
                 next_char = input.peek()
@@ -103,7 +117,10 @@ def parse_list(input: Peekable[str]) -> List[float] | float:
 
 
 def parse(input: str) -> List[float] | float:
-    return parse_list(Peekable(input))
+    result = parse_list(Peekable(input))
+    if isinstance(result, float):
+        return [result]
+    return result
 
 
 def parse_from_file(path: str) -> List[float] | float:

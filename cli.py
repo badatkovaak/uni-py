@@ -12,7 +12,7 @@ from src.task2 import solve_system_of_linear_equations_numerically
 
 
 def print_help() -> None:
-    print('''
+    print("""
 usage: cli.py [options] [arguments]
             
 Options:
@@ -28,7 +28,8 @@ Options:
     
     --help              see this help
 
-            ''')
+            """)
+
 
 def convert_input_to_array(input: str) -> NDArray:
     try:
@@ -39,18 +40,19 @@ def convert_input_to_array(input: str) -> NDArray:
 
 def run_task2(a: str, b: str):
     return solve_system_of_linear_equations_numerically(
-        convert_input_to_array(a), convert_input_to_array(b))
+        convert_input_to_array(a), convert_input_to_array(b)
+    )
 
 
 def parse_args(input: List[str]):
     match input:
-        case [_, '--help', *_]:
+        case [_, "--help", *_]:
             print_help()
-        case [_, '--demidovich', *_]:
+        case [_, "--demidovich", *_]:
             run_demidovich()
-        case [_, '--kostrikin', *_]:
+        case [_, "--kostrikin", *_]:
             run_kostrikin()
-        case [_, '--task2', a, b, *_]:
+        case [_, "--task2", a, b, *_]:
             run_task2(a, b)
         case _:
             print("Invalid options")
